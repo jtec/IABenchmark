@@ -1,39 +1,51 @@
 function bench()
 % Add CORA to path
 addpath(genpath('cora'));
+% Add fig2svg to path
+addpath(genpath('fig2svg'));
+
 % Intialize pseudo random number generator for repeatable results:
 rng(31415);
 % Run micro benchmark:
 
 % Reals:
-t_scalar = [];
-t_matrix = [];
+t_scalar_real = [];
+t_matrix_real = [];
 for k_run=1:10
-    [t_scalar(k_run), t_matrix(k_run)] = runbench(rand(3,1), rand(3,3));
+    [t_scalar_real(k_run), t_matrix_real(k_run)] = runbench(rand(3,1), rand(3,3));
 end
 disp('Scalar operations on reals [탎]:');
-scalar_real = interval(min(t_scalar), max(t_scalar))
+scalar_real = interval(min(t_scalar_real), max(t_scalar_real))
 disp('Matrix operations on reals [탎]:');
-matrix_real = interval(min(t_matrix), max(t_matrix))
+matrix_real = interval(min(t_matrix_real), max(t_matrix_real))
 
 % Intervals:
-t_scalar = [];
-t_matrix = [];
+t_scalar_int = [];
+t_matrix_int = [];
 res = 0;
-for k_run=1:10
-    [t_scalar(k_run), t_matrix(k_run)] = runbench(interval(rand(3,1)), interval(rand(3,3)));
+for k_run=1:100
+    x = rand(3,1) + rand(3,1) .* interval(-ones(3,1), ones(3,1));
+    P = rand(3,3) + rand(3,3) .* interval(-ones(3,3), ones(3,3));
+    [t_scalar_int(k_run), t_matrix_int(k_run)] = runbench(x, P);
 end
-disp('Interval operations on reals [탎]:');
-scalar_int = interval(min(t_scalar), max(t_scalar))
-disp('Interval operations on reals [탎]:');
-matrix_int = interval(min(t_matrix), max(t_matrix))
+disp('Scalar operations on intervals [탎]:');
+scalar_int = interval(min(t_scalar_int), max(t_scalar_int))
+disp('Matrix operations on intervals [탎]:');
+matrix_int = interval(min(t_matrix_int), max(t_matrix_int))
 
-scalar_int/scalar_real
+hold off;
+plot(t_scalar_int);
+hold on;
+plot(t_matrix_int);
+ylabel('t [us]');
+xlabel('Benchmark run');
+legend({'Scalar operations', 'Matrix operations'});
+fig2svg('matlabIntervalBenchmark.svg')
 end
 
 % Runs the actual benchmark code and returns execution times in microseconds:
 function [t_scalar, t_matrix] = runbench(x, P)
-N = 1000;
+N = 100;
 tic;
 for k=1:N
     res = sin(x(1));

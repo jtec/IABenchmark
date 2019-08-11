@@ -1,3 +1,6 @@
 [submodule "matlab/cora"]
 	path = matlab/cora
 	url = https://github.com/TUMcps/CORA.git
+[submodule "matlab/fig2svg"]
+	path = matlab/fig2svg
+	url = https://github.com/kupiqu/fig2svg.git
