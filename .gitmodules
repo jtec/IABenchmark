@@ -1,0 +1,3 @@
+[submodule "matlab/cora"]
+	path = matlab/cora
+	url = https://github.com/TUMcps/CORA.git
