@@ -3,13 +3,14 @@ using IntervalArithmetic
 using BenchmarkTools
 using Random
 using Plots
+using JLD2, FileIO
 
 cd(dirname(@__FILE__()))
 
 # Runs the actual benchmark code and returns execution times in microseconds:
 function runbench(x, P)
     texec = []
-    N = 1000
+    N = 100
     t0 = time_ns()
     for k in 1:N
         res = sin(x[1])
@@ -26,44 +27,30 @@ function runbench(x, P)
     push!(texec, 1e-3*(time_ns()-t0)/N)
 end
 
-# Intialize pseudo random number generator for repeatable results:
+# Intialize pseudo random number generator:
 Random.seed!(31415);
 # Run micro benchmark:
 
-# Reals:
-t_scalar = []
-t_matrix = []
-for k_run in 1:10
-    texec = runbench(rand(3,1), rand(3,3))
-    push!(t_scalar, texec[1])
-    push!(t_matrix, texec[2])
-end
-print("Scalar operations on reals [µs]:")
-println(Interval(minimum(t_scalar), maximum(t_scalar)))
-print("Matrix operations on reals [µs]:");
-println(Interval(minimum(t_matrix), maximum(t_matrix)))
-
 # Intervals:
 t_scalar = [];
-t_matrix = [];
-res = 0;
-for k_run in 1:100
-    x = rand(3,1) + rand(3,1) .* map(Interval, -ones(3,1), ones(3,1))
-    P = rand(3,3) + rand(3,3) .* map(Interval, -ones(3,3), ones(3,3))
-    texec = runbench(x, P)
-    push!(t_scalar, texec[1])
-    push!(t_matrix, texec[2])
+NN = 100;
+let t_matrix = Array{Float64}(undef, NN, 0);
+    ns = 2:10:200;
+    for n in ns
+        t_m = [];
+        print("Running matrix operations for n = ")
+        println(n)
+        for k_run in 1:NN
+            x = rand(n,1) + rand(n,1) .* map(Interval, -ones(n,1), ones(n,1))
+            P = rand(n,n) + rand(n,n) .* map(Interval, -ones(n,n), ones(n,n))
+            texec = runbench(x, P)
+            push!(t_scalar, texec[1])
+            push!(t_m, texec[2])
+        end
+        t_m = vec(t_m);
+        t_matrix = hcat(t_matrix, t_m);
+        println(size(t_matrix))
+    end
+    @save "results.jld2" t_scalar t_matrix
+    println("Results saved to file")
 end
-print("Scalar operations on intervals [µs]:")  
-println(Interval(minimum(t_scalar), maximum(t_scalar)))
-print("Matrix operations on intervals [µs]:");
-println(Interval(minimum(t_matrix), maximum(t_matrix)))
-
-pgfplots()
-plot(t_scalar, linewidth=2, label=["Scalar operations" "bof"])
-plot!(t_matrix,linewidth=2, label=["Matrix operations" "bof"])
-xlabel!("Run");
-ylabel!("Execution time [µs]");
-
-gui()
-savefig("juliaIntervalBenchmark.svg")  

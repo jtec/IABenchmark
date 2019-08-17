@@ -8,39 +8,21 @@ addpath(genpath('fig2svg'));
 rng(31415);
 % Run micro benchmark:
 
-% Reals:
-t_scalar_real = [];
-t_matrix_real = [];
-for k_run=1:10
-    [t_scalar_real(k_run), t_matrix_real(k_run)] = runbench(rand(3,1), rand(3,3));
-end
-disp('Scalar operations on reals [탎]:');
-scalar_real = interval(min(t_scalar_real), max(t_scalar_real))
-disp('Matrix operations on reals [탎]:');
-matrix_real = interval(min(t_matrix_real), max(t_matrix_real))
-
 % Intervals:
 t_scalar_int = [];
 t_matrix_int = [];
-res = 0;
-for k_run=1:100
-    x = rand(3,1) + rand(3,1) .* interval(-ones(3,1), ones(3,1));
-    P = rand(3,3) + rand(3,3) .* interval(-ones(3,3), ones(3,3));
-    [t_scalar_int(k_run), t_matrix_int(k_run)] = runbench(x, P);
+ns = 2:10:200;
+for n=ns
+    t_m = [];
+    disp([mfilename '>> Running matrix operations for n = ' num2str(n)]);
+    for k_run=1:100
+        x = rand(n,1) + rand(n,1) .* interval(-ones(n,1), ones(n,1));
+        P = rand(n,n) + rand(n,n) .* interval(-ones(n,n), ones(n,n));
+        [t_scalar_int(k_run), t_m(k_run)] = runbench(x, P);
+    end
+    t_matrix_int = [t_matrix_int t_m];
 end
-disp('Scalar operations on intervals [탎]:');
-scalar_int = interval(min(t_scalar_int), max(t_scalar_int))
-disp('Matrix operations on intervals [탎]:');
-matrix_int = interval(min(t_matrix_int), max(t_matrix_int))
-
-hold off;
-plot(t_scalar_int);
-hold on;
-plot(t_matrix_int);
-ylabel('t [us]');
-xlabel('Benchmark run');
-legend({'Scalar operations', 'Matrix operations'});
-fig2svg('matlabIntervalBenchmark.svg')
+save('benchresults.mat');
 end
 
 % Runs the actual benchmark code and returns execution times in microseconds:
