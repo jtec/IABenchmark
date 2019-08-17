@@ -51,6 +51,6 @@ let t_matrix = Array{Float64}(undef, NN, 0);
         t_matrix = hcat(t_matrix, t_m);
         println(size(t_matrix))
     end
-    @save "results.jld2" t_scalar t_matrix
+    @save "results.jld2" t_scalar t_matrix ns
     println("Results saved to file")
 end
